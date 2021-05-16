@@ -15,9 +15,9 @@ function main() {
     return;
   }
 
-  loadShaderSources()
-  .then(shaderSources => {
-    const simulation = new Simulation(gl, shaderSources);
+  loadShaderSources(gl)
+  .then(shaders => {
+    const simulation = new Simulation(gl, shaders);
 
     const loop = timeStamp => {
       simulation.update(timeStamp);
@@ -29,10 +29,12 @@ function main() {
   });
 }
 
-async function loadShaderSources() {
+async function loadShaderSources(gl) {
+  const vs = gl.VERTEX_SHADER;
+  const fs = gl.FRAGMENT_SHADER;
   return {
-    vert: await readTextFile("shaders/vertex.glsl"),
-    draw: await readTextFile("shaders/draw.glsl"),
-    rend: await readTextFile("shaders/render.glsl"),
+    vert: loadShader(gl, vs, await readTextFile("shaders/vertex.glsl")),
+    draw: loadShader(gl, fs, await readTextFile("shaders/draw.glsl")),
+    rend: loadShader(gl, fs, await readTextFile("shaders/render.glsl")),
   };
 }

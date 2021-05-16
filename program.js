@@ -1,7 +1,7 @@
 class Program {
-    constructor(gl, vsSource, fsSource) {
+    constructor(gl, vertShader, fragShader) {
         this.gl = gl;
-        this.program = initShaderProgram(this.gl, vsSource, fsSource);
+        this.program = initShaderProgram(this.gl, vertShader, fragShader);
         this.uniforms = getUniforms(this.gl, this.program);
         this.attributes = getAttributes(this.gl, this.program);
 

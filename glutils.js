@@ -1,16 +1,13 @@
 // Utility functions for WebGL shader programs
 
-function initShaderProgram(gl, vsSource, fsSource){
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-    if(vertexShader == null || fragmentShader == null){
+function initShaderProgram(gl, vertShader, fragShader){
+    if(!vertShader || !fragShader){
         return null;
     }
 
     const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
+    gl.attachShader(shaderProgram, vertShader);
+    gl.attachShader(shaderProgram, fragShader);
     gl.linkProgram(shaderProgram);
 
     if(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {

@@ -1,20 +1,19 @@
 class Simulation {
-    constructor(gl, shaderSources){
+    constructor(gl, shaders){
         this.gl = gl;
 
-        // Constant uniform values
         const width = gl.canvas.width;
         const height = gl.canvas.height;
 
-        /// Programs and constant uniforms
-        this.generatorProgram = new Program(gl, shaderSources.vert, shaderSources.draw);
-        this.gl.uniform2f(this.generatorProgram.uniforms.resolution, width, height);
+        // Programs and constant uniforms
+        this.drawProgram = new Program(gl, shaders.vert, shaders.draw);
+        this.gl.uniform2f(this.drawProgram.uniforms.resolution, width, height);
 
-        this.renderProgram = new Program(gl, shaderSources.vert, shaderSources.rend);
+        this.renderProgram = new Program(gl, shaders.vert, shaders.rend);
         this.gl.uniform2f(this.renderProgram.uniforms.resolution, width, height);
 
         // Frame buffers
-        this.renderBuffer = new FrameBuffer(gl, gl.canvas.width, gl.canvas.height);
+        this.renderBuffer = new FrameBuffer(gl, width, height);
 
         // Time
         this.lastTime = 0;
@@ -26,14 +25,11 @@ class Simulation {
         this.deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
-        this.generatorProgram.bind();
+        this.drawProgram.bind();
         this.renderBuffer.bindBuffer();
 
         // Update elapsed time
-        this.gl.uniform1f(
-            this.generatorProgram.uniforms.time,
-            timeStamp / 1000.
-        );
+        this.gl.uniform1f(this.drawProgram.uniforms.time, timeStamp / 1000.);
 
         this.drawQuad();
 

@@ -40,10 +40,6 @@ class Simulation {
         this.renderProgram.bind();
         this.renderBuffer.bindTexture(this.renderProgram, "renderTexture");
 
-        this.drawQuad();
-    }
-
-    drawQuad() {
         const gl = this.gl;
 
         gl.clearColor(0.,0.,0.,1.);
@@ -53,8 +49,12 @@ class Simulation {
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        this.drawQuad();
+    }
+
+    drawQuad() {
         const offset = 0;
         const vertexCount = 4;
-        this.gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
     }
 }

@@ -17,7 +17,7 @@ function main() {
 
   loadShaderSources(gl)
   .then(shaders => {
-    // const gui = new GUI(document.getElementById("configPanel"));
+    const gui = new GUI(document.getElementById("configPanel"));
     const simulation = new Simulation(gl, shaders);
     
     const loop = timeStamp => {

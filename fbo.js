@@ -35,12 +35,9 @@ class FrameBuffer {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
     }
 
-    bindTexture(shaderProgram, uSampler) {
-        if(shaderProgram.uniforms[uSampler] == undefined) {
-            return;
-        }
+    bindTexture(samplerLocation) {
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
-        this.gl.uniform1i(shaderProgram.uniforms[uSampler], 0);
+        this.gl.uniform1i(samplerLocation, 0);
     }
 }

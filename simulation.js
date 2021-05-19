@@ -2,20 +2,16 @@ class Simulation {
     constructor(gl, shaders){
         this.gl = gl;
 
-        const width = gl.canvas.width;
-        const height = gl.canvas.height;
+        this.width = gl.canvas.width;
+        this.height = gl.canvas.height;
 
-        // Programs and constant uniforms
-        this.drawProgram = new Program(gl, shaders.vert, shaders.draw);
-        this.gl.uniform2f(this.drawProgram.uniforms.resolution, width, height);
+        const quadBuffer = createQuadBuffer(gl);
 
-        this.renderProgram = new Program(gl, shaders.vert, shaders.rend);
-        this.gl.uniform2f(this.renderProgram.uniforms.resolution, width, height);
+        this.drawProgram =   new Program(this.gl, shaders.vertex, shaders.draw,   quadBuffer);
+        this.renderProgram = new Program(this.gl, shaders.vertex, shaders.render, quadBuffer);
 
-        // Frame buffers
-        this.renderBuffer = new FrameBuffer(gl, width, height);
+        this.renderBuffer =  new FrameBuffer(gl, this.width, this.height);
 
-        // Time
         this.lastTime = 0;
         this.deltaTime = 0;
     }
@@ -25,20 +21,25 @@ class Simulation {
         this.deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
-        this.drawProgram.bind();
-        this.renderBuffer.bindBuffer();
+        {
+            const {uniforms} = this.drawProgram;
 
-        // Update elapsed time
-        this.gl.uniform1f(this.drawProgram.uniforms.time, timeStamp / 1000.);
+            this.drawProgram.bind();
+            this.renderBuffer.bindBuffer();
 
-        this.drawQuad();
+            this.gl.uniform2f(uniforms.resolution, this.width, this.height);
+            this.gl.uniform1f(uniforms.time, timeStamp / 1000.);
 
-        this.renderBuffer.unbindBuffer();
+            this.drawProgram.run();
+
+            this.renderBuffer.unbindBuffer();
+        }
     }
 
     draw() {
+        const {uniforms} = this.renderProgram;
         this.renderProgram.bind();
-        this.renderBuffer.bindTexture(this.renderProgram, "renderTexture");
+        this.renderBuffer.bindTexture(uniforms.renderTexture);
 
         const gl = this.gl;
 
@@ -47,14 +48,8 @@ class Simulation {
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
 
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        this.gl.uniform2f(uniforms.resolution, this.width, this.height);
 
-        this.drawQuad();
-    }
-
-    drawQuad() {
-        const offset = 0;
-        const vertexCount = 4;
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
+        this.renderProgram.run();
     }
 }

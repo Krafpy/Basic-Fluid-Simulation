@@ -7,3 +7,7 @@ async function readTextFile(path) {
 function getElapsedTime(startTime){
     return (Date.now() - startTime) / 1000.;
 }
+
+function isStringNumeric(str) {
+    return !isNaN(str) && !isNaN(parseFloat(str));
+}

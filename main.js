@@ -1,6 +1,9 @@
 window.onload = main;
 
 function main() {
+  const panel = document.getElementById("configPanel");
+  const gui = new GUI(panel);
+
   const canvas = document.getElementById("glCanvas");
   // fullScreen
   /*canvas.width = window.innerWidth;
@@ -17,8 +20,12 @@ function main() {
 
   loadShaderSources(gl)
   .then(shaders => {
-    const gui = new GUI(document.getElementById("configPanel"));
-    const simulation = new Simulation(gl, shaders);
+    const simulation = new Simulation(gl, shaders, gui);
+
+    //window.addEventListener("mousemove", e => simulation.setMousePosition(e));
+    window.onmousemove = e => simulation.setMousePosition(e);
+    window.onmousedown = e => simulation.setMousePressed(e);
+    window.onmouseup   = e => simulation.setMousePressed(e);
     
     const loop = timeStamp => {
       simulation.update(timeStamp);
@@ -34,8 +41,8 @@ async function loadShaderSources(gl) {
   const vs = gl.VERTEX_SHADER;
   const fs = gl.FRAGMENT_SHADER;
   return {
-    vertex: loadShader(gl, vs, await readTextFile("shaders/vertex.glsl")),
-    draw:   loadShader(gl, fs, await readTextFile("shaders/draw.glsl")),
-    render: loadShader(gl, fs, await readTextFile("shaders/render.glsl")),
+    vertex:   loadShader(gl, vs, await readTextFile("shaders/vertex.glsl")),
+    copy:     loadShader(gl, fs, await readTextFile("shaders/copy.glsl")),
+    splat:    loadShader(gl, fs, await readTextFile("shaders/splat.glsl")),
   };
 }

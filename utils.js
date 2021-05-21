@@ -11,3 +11,20 @@ function getElapsedTime(startTime){
 function isStringNumeric(str) {
     return !isNaN(str) && !isNaN(parseFloat(str));
 }
+
+function getRelativeMousePosition(event, target) {
+    target = target || event.target;
+    const rect = target.getBoundingClientRect();
+    return {
+        x: event.clientX - rect.left,
+        y: rect.bottom - event.clientY,
+    };
+}
+
+function pauseEvent(e) {
+    if(e.stopPropagation) e.stopPropagation();
+    if(e.preventDefault) e.preventDefault();
+    e.cancelBubble = true;
+    e.returnValue = false;
+    return false;
+}

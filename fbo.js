@@ -11,7 +11,7 @@ class FrameBuffer {
         const border = 0;
         const format = gl.RGBA;
         const type  = gl.UNSIGNED_BYTE;
-        const data = null;
+        const data = null
         gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                         width, height, border, format, type, data);
         
@@ -19,12 +19,15 @@ class FrameBuffer {
         this.fb = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
 
-        const attachPoint = gl.COLOR_ATTACHMENT0;
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachPoint, gl.TEXTURE_2D, this.targetTexture, level);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.targetTexture, level);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        
+        gl.viewport(0, 0, width, height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearColor(0., 0., 0., 1.);
     }
 
     bindBuffer() {
@@ -39,5 +42,18 @@ class FrameBuffer {
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
         this.gl.uniform1i(samplerLocation, 0);
+    }
+}
+
+class DoubleFrameBuffer {
+    constructor(gl, width, height) {
+        this.fbo1 = new FrameBuffer(gl, width, height);
+        this.fbo2 = new FrameBuffer(gl, width, height);
+    }
+
+    swap() {
+        const temp = this.fbo1;
+        this.fbo1 = this.fbo2;
+        this.fbo2 = temp;
     }
 }

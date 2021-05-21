@@ -9,27 +9,25 @@ class Program {
         this.bind();
 
         //this.attachVertexAttrib();
-        {
-            const numComponents = 2;
-            const type = gl.FLOAT;
-            const normalize = false;
-            const stride = 0;
-            const offset = 0;
-        
-            gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-            gl.vertexAttribPointer(
-                this.attributes.vertexPosition,
-                numComponents,
-                type,
-                normalize,
-                stride,
-                offset
-            );
-        
-            gl.enableVertexAttribArray(
-                this.attributes.vertexPosition
-            );
-        }
+        const numComponents = 2;
+        const type = gl.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        const offset = 0;
+    
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+        gl.vertexAttribPointer(
+            this.attributes.vertexPosition,
+            numComponents,
+            type,
+            normalize,
+            stride,
+            offset
+        );
+    
+        gl.enableVertexAttribArray(
+            this.attributes.vertexPosition
+        );
 
         // Pass the projection and modelview matrices
         // into the corresponding uniforms

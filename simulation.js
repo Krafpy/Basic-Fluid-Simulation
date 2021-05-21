@@ -1,7 +1,7 @@
 class Simulation {
     constructor(gl, shaders, gui){
-        this.gl = gl;
         this.gui = gui;
+        this.gl = gl;
 
         this.width = gl.canvas.width;
         this.height = gl.canvas.height;

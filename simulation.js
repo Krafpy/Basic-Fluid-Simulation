@@ -37,7 +37,7 @@ class Simulation {
             gl.uniform1f(uniforms.radius, this.gui.inputs.splatRadius.value);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
 
-            this.densityField.fbo2.bindTexture(uniforms.densityField);
+            this.densityField.fbo2.bindTexture(uniforms.densityField, 0);
 
             this.splatProgram.run();
 
@@ -49,7 +49,7 @@ class Simulation {
     draw() {
         const {uniforms} = this.copyProgram;
         this.copyProgram.bind();
-        this.densityField.fbo2.bindTexture(uniforms.texture);
+        this.densityField.fbo2.bindTexture(uniforms.texture, 0);
 
         const gl = this.gl;
 

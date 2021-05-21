@@ -38,10 +38,10 @@ class FrameBuffer {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
     }
 
-    bindTexture(samplerLocation) {
-        this.gl.activeTexture(this.gl.TEXTURE0);
+    bindTexture(samplerLocation, texBiding) {
+        this.gl.activeTexture(this.gl.TEXTURE0 + texBiding);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
-        this.gl.uniform1i(samplerLocation, 0);
+        this.gl.uniform1i(samplerLocation, texBiding);
     }
 }
 

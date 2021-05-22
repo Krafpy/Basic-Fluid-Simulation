@@ -4,7 +4,6 @@ class Simulation {
         this.height = gl.canvas.height;
 
         const quadBuffer = createQuadBuffer();
-        console.log(quadBuffer);
 
         this.copyProgram   = new Program(shaders.vertex, shaders.copy,   quadBuffer);
         this.splatProgram  = new Program(shaders.vertex, shaders.splat,  quadBuffer);

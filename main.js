@@ -1,8 +1,9 @@
+let gl, gui;
 window.onload = main;
 
 function main() {
   const panel = document.getElementById("configPanel");
-  const gui = new GUI(panel);
+  gui = new GUI(panel);
 
   const canvas = document.getElementById("glCanvas");
   // fullScreen
@@ -11,16 +12,16 @@ function main() {
   canvas.width = 640;
   canvas.height = 480;
 
-  const gl = canvas.getContext("webgl2");
+  gl = canvas.getContext("webgl2");
 
   if(!gl){
     alert("Unable to initialize WebGL.");
     return;
   }
 
-  loadShaderSources(gl)
+  loadShaderSources()
   .then(shaders => {
-    const simulation = new Simulation(gl, shaders, gui);
+    const simulation = new Simulation(shaders);
 
     //window.addEventListener("mousemove", e => simulation.setMousePosition(e));
     window.onmousemove = e => simulation.setMousePosition(e);
@@ -37,13 +38,13 @@ function main() {
   });
 }
 
-async function loadShaderSources(gl) {
+async function loadShaderSources() {
   const vs = gl.VERTEX_SHADER;
   const fs = gl.FRAGMENT_SHADER;
   return {
-    vertex:   loadShader(gl, vs, await readTextFile("shaders/vertex.glsl")),
-    copy:     loadShader(gl, fs, await readTextFile("shaders/copy.glsl")),
-    splat:    loadShader(gl, fs, await readTextFile("shaders/splat.glsl")),
-    gsstep:   loadShader(gl, fs, await readTextFile("shaders/gsstep.glsl")),
+    vertex:   loadShader(vs, await readTextFile("shaders/vertex.glsl")),
+    copy:     loadShader(fs, await readTextFile("shaders/copy.glsl")),
+    splat:    loadShader(fs, await readTextFile("shaders/splat.glsl")),
+    gsstep:   loadShader(fs, await readTextFile("shaders/gsstep.glsl")),
   };
 }

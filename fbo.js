@@ -1,7 +1,5 @@
 class FrameBuffer {
-    constructor(gl, width, height){
-        this.gl = gl;
-
+    constructor(width, height){
         // Create the texture
         this.targetTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, this.targetTexture);
@@ -30,33 +28,17 @@ class FrameBuffer {
         gl.clearColor(0., 0., 0., 1.);
     }
 
-   /* bindBuffer() {
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fb);
-    }
-
-    unbindBuffer() {
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-    }*/
-
     attach(texBiding) {
-        const binding = this.gl.TEXTURE0 + texBiding;
-        this.gl.activeTexture(binding);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
+        gl.activeTexture(gl.TEXTURE0 + texBiding);
+        gl.bindTexture(gl.TEXTURE_2D, this.targetTexture);
         return texBiding;
     }
-
-    /*bindTexture(samplerLocation, texBiding) {
-        this.gl.activeTexture(this.gl.TEXTURE0 + texBiding);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
-        this.gl.uniform1i(samplerLocation, texBiding);
-
-    }*/
 }
 
 class DoubleFrameBuffer {
-    constructor(gl, width, height) {
-        this.fbo1 = new FrameBuffer(gl, width, height);
-        this.fbo2 = new FrameBuffer(gl, width, height);
+    constructor(width, height) {
+        this.fbo1 = new FrameBuffer(width, height);
+        this.fbo2 = new FrameBuffer(width, height);
     }
 
     swap() {

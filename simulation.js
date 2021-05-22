@@ -1,32 +1,25 @@
 class Simulation {
-    constructor(gl, shaders, gui){
-        this.gui = gui;
-        this.gl = gl;
-
+    constructor(shaders){
         this.width = gl.canvas.width;
         this.height = gl.canvas.height;
 
-        const quadBuffer = createQuadBuffer(gl);
+        const quadBuffer = createQuadBuffer();
+        console.log(quadBuffer);
 
-        this.copyProgram   = new Program(this.gl, shaders.vertex, shaders.copy,   quadBuffer);
-        this.splatProgram  = new Program(this.gl, shaders.vertex, shaders.splat,  quadBuffer);
-        this.gsstepProgram = new Program(this.gl, shaders.vertex, shaders.gsstep, quadBuffer);
+        this.copyProgram   = new Program(shaders.vertex, shaders.copy,   quadBuffer);
+        this.splatProgram  = new Program(shaders.vertex, shaders.splat,  quadBuffer);
+        this.gsstepProgram = new Program(shaders.vertex, shaders.gsstep, quadBuffer);
 
-        this.density = new DoubleFrameBuffer(gl, this.width, this.height);
+        this.density = new DoubleFrameBuffer(this.width, this.height);
 
         this.lastTime = 0;
         this.deltaTime = 0;
 
         this.mouse = {x:0, y:0, pressed:0};
-
-        /*for(let c in this.gsstepProgram.uniforms) {
-            console.log(c);
-        }*/
     }
 
     update(timeStamp) {
-        const gl = this.gl;
-        const inputs = this.gui.inputs;
+        const inputs = gui.inputs;
 
         const currentTime = timeStamp / 1000.;
         this.deltaTime = currentTime - this.lastTime;
@@ -63,8 +56,6 @@ class Simulation {
     }
 
     draw() {
-        const gl = this.gl;
-
         const {uniforms} = this.copyProgram;
         this.copyProgram.bind();
 
@@ -83,7 +74,7 @@ class Simulation {
         if(event.target.tagName == "BODY") {
             pauseEvent(event);
         }
-        const pos = getRelativeMousePosition(event, this.gl.canvas);
+        const pos = getRelativeMousePosition(event, gl.canvas);
         this.mouse.x = pos.x;
         this.mouse.y = pos.y;
     }

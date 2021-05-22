@@ -1,6 +1,6 @@
 // Utility functions for WebGL shader programs
 
-function initShaderProgram(gl, vertShader, fragShader){
+function initShaderProgram(vertShader, fragShader){
     if(!vertShader || !fragShader){
         return null;
     }
@@ -18,7 +18,7 @@ function initShaderProgram(gl, vertShader, fragShader){
     return shaderProgram;
 }
 
-function loadShader(gl, type, source){
+function loadShader(type, source){
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
@@ -32,7 +32,7 @@ function loadShader(gl, type, source){
     return shader;
 }
 
-function getUniforms(gl, shaderProgram){
+function getUniforms(shaderProgram){
     let uniforms = {};
     const numUniforms = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
     for(let i = 0; i < numUniforms; ++i){
@@ -42,7 +42,7 @@ function getUniforms(gl, shaderProgram){
     return uniforms;
 }
 
-function getAttributes(gl, shaderProgram){
+function getAttributes(shaderProgram){
     let attribs = {};
     const numAttribs = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
     for(let i = 0; i < numAttribs; ++i){

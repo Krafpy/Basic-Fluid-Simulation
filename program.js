@@ -1,9 +1,8 @@
 class Program {
-    constructor(gl, vertShader, fragShader, quadBuffer) {
-        this.gl = gl;
-        this.program = initShaderProgram(this.gl, vertShader, fragShader);
-        this.uniforms = getUniforms(this.gl, this.program);
-        this.attributes = getAttributes(this.gl, this.program);
+    constructor(vertShader, fragShader, quadBuffer) {
+        this.program = initShaderProgram(vertShader, fragShader);
+        this.uniforms = getUniforms(this.program);
+        this.attributes = getAttributes(this.program);
 
         // Use our rendering program
         this.bind();
@@ -44,15 +43,15 @@ class Program {
     }
 
     bind() {
-        this.gl.useProgram(this.program);
+        gl.useProgram(this.program);
     }
 
     run(fbo) {
         if(fbo) {
-            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fbo.fb);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fb);
         } else {
-            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+            gl.bindFramebuffer(gl.FRAMEBUFFER,   null);
         }
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 }

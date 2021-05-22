@@ -30,19 +30,27 @@ class FrameBuffer {
         gl.clearColor(0., 0., 0., 1.);
     }
 
-    bindBuffer() {
+   /* bindBuffer() {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fb);
     }
 
     unbindBuffer() {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }*/
+
+    attach(texBiding) {
+        const binding = this.gl.TEXTURE0 + texBiding;
+        this.gl.activeTexture(binding);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
+        return texBiding;
     }
 
-    bindTexture(samplerLocation, texBiding) {
+    /*bindTexture(samplerLocation, texBiding) {
         this.gl.activeTexture(this.gl.TEXTURE0 + texBiding);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.targetTexture);
         this.gl.uniform1i(samplerLocation, texBiding);
-    }
+
+    }*/
 }
 
 class DoubleFrameBuffer {
@@ -55,5 +63,13 @@ class DoubleFrameBuffer {
         const temp = this.fbo1;
         this.fbo1 = this.fbo2;
         this.fbo2 = temp;
+    }
+
+    get write() {
+        return this.fbo1;
+    }
+
+    get read() {
+        return this.fbo2;
     }
 }

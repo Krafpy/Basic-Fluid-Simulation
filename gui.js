@@ -10,11 +10,10 @@ class GUI {
     addInput(inputDiv) {
         const range = inputDiv.children[0];
         const text = inputDiv.children[1];
-        this.inputs[range.name] = {
-            get value() {
-                return parseFloat(range.value);
-            }
+        const value = {
+            get: () => parseFloat(range.value)
         };
+        Object.defineProperty(this.inputs, range.name, value);
         this.automateInput(range, text);
     }
 

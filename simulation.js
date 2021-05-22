@@ -8,19 +8,25 @@ class Simulation {
 
         const quadBuffer = createQuadBuffer(gl);
 
-        this.copyProgram =  new Program(this.gl, shaders.vertex, shaders.copy,  quadBuffer);
-        this.splatProgram = new Program(this.gl, shaders.vertex, shaders.splat, quadBuffer);
+        this.copyProgram   = new Program(this.gl, shaders.vertex, shaders.copy,   quadBuffer);
+        this.splatProgram  = new Program(this.gl, shaders.vertex, shaders.splat,  quadBuffer);
+        this.gsstepProgram = new Program(this.gl, shaders.vertex, shaders.gsstep, quadBuffer);
 
-        this.densityField = new DoubleFrameBuffer(gl, this.width, this.height);
+        this.density = new DoubleFrameBuffer(gl, this.width, this.height);
 
         this.lastTime = 0;
         this.deltaTime = 0;
 
         this.mouse = {x:0, y:0, pressed:0};
+
+        /*for(let c in this.gsstepProgram.uniforms) {
+            console.log(c);
+        }*/
     }
 
     update(timeStamp) {
         const gl = this.gl;
+        const inputs = this.gui.inputs;
 
         const currentTime = timeStamp / 1000.;
         this.deltaTime = currentTime - this.lastTime;
@@ -29,29 +35,38 @@ class Simulation {
         // Density source
         {
             const {uniforms} = this.splatProgram;
-
             this.splatProgram.bind();
-            this.densityField.fbo1.bindBuffer();
 
             gl.uniform2f(uniforms.resolution, this.width, this.height);
-            gl.uniform1f(uniforms.radius, this.gui.inputs.splatRadius.value);
+            gl.uniform1f(uniforms.radius, inputs.splatRadius);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
+            gl.uniform1i(uniforms.density, this.density.read.attach(0));
 
-            this.densityField.fbo2.bindTexture(uniforms.densityField, 0);
+            this.splatProgram.run(this.density.write);
+            this.density.swap();
+        }
 
-            this.splatProgram.run();
+        // Diffusion solving using Gauss-Seidel relaxation
+        {
+            const {uniforms} = this.gsstepProgram;
+            this.gsstepProgram.bind();
 
-            this.densityField.fbo1.unbindBuffer();
-            this.densityField.swap();
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1f(uniforms.k, this.deltaTime * inputs.diffusionCoeff);
+
+            for(let i = 0; i < 20; ++i){
+                gl.uniform1i(uniforms.field, this.density.read.attach(0));
+                this.gsstepProgram.run(this.density.write);
+                this.density.swap();
+            }
         }
     }
 
     draw() {
+        const gl = this.gl;
+
         const {uniforms} = this.copyProgram;
         this.copyProgram.bind();
-        this.densityField.fbo2.bindTexture(uniforms.texture, 0);
-
-        const gl = this.gl;
 
         gl.clearColor(0.,0.,0.,1.);
         gl.clearDepth(1.);
@@ -59,6 +74,7 @@ class Simulation {
         gl.depthFunc(gl.LEQUAL);
 
         gl.uniform2f(uniforms.resolution, this.width, this.height);
+        gl.uniform1i(uniforms.texture, this.density.read.attach(0));
 
         this.copyProgram.run();
     }

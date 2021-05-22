@@ -47,9 +47,12 @@ class Program {
         this.gl.useProgram(this.program);
     }
 
-    run() {
-        const offset = 0;
-        const vertexCount = 4;
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
+    run(fbo) {
+        if(fbo) {
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fbo.fb);
+        } else {
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+        }
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
     }
 }

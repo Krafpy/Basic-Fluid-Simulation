@@ -44,5 +44,6 @@ async function loadShaderSources(gl) {
     vertex:   loadShader(gl, vs, await readTextFile("shaders/vertex.glsl")),
     copy:     loadShader(gl, fs, await readTextFile("shaders/copy.glsl")),
     splat:    loadShader(gl, fs, await readTextFile("shaders/splat.glsl")),
+    gsstep:   loadShader(gl, fs, await readTextFile("shaders/gsstep.glsl")),
   };
 }

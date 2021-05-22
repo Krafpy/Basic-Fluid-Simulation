@@ -32,7 +32,7 @@ function pauseEvent(e) {
 // https://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
 
 function HSVtoRGB(h, s, v) {
-    var r, g, b, i, f, p, q, t;
+    let r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
         s = h.s, v = h.v, h = h.h;
     }

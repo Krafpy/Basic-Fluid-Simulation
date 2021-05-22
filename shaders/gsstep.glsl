@@ -13,14 +13,14 @@ vec2 uv(float ox, float oy) {
 }
 
 void main() {
-    vec4 top    = texture2D(field, uv( 0., 1.));
-    vec4 bottom = texture2D(field, uv( 0.,-1.));
-    vec4 left   = texture2D(field, uv( 1., 0.));
-    vec4 right  = texture2D(field, uv(-1., 0.));
+    vec3 top    = texture2D(field, uv( 0., 1.)).rgb;
+    vec3 bottom = texture2D(field, uv( 0.,-1.)).rgb;
+    vec3 left   = texture2D(field, uv( 1., 0.)).rgb;
+    vec3 right  = texture2D(field, uv(-1., 0.)).rgb;
 
-    vec4 current = texture2D(field, uv(0., 0.));
+    vec3 current = texture2D(field, uv(0., 0.)).rgb;
 
-    vec4 new = (current + k*(top + bottom + right + left)) / (1. + 4.*k);
+    vec3 new = (current + k*(top + bottom + right + left)) / (1. + 4.*k);
 
-    gl_FragColor = new;
+    gl_FragColor = vec4(new, 1.);
 }

@@ -15,6 +15,7 @@ class Simulation {
         this.deltaTime = 0;
 
         this.mouse = {x:0, y:0, pressed:0};
+        this.splatColor = HSVtoRGB(0., 1., 1.);
     }
 
     update(timeStamp) {
@@ -34,6 +35,7 @@ class Simulation {
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
             gl.uniform1f(uniforms.decay, inputs.decay);
             gl.uniform1f(uniforms.deltaTime, this.deltaTime);
+            gl.uniform3f(uniforms.color, this.splatColor.r, this.splatColor.g, this.splatColor.b)
             gl.uniform1i(uniforms.density, this.density.read.attach(0));
 
             this.splatProgram.run(this.density.write);
@@ -78,6 +80,7 @@ class Simulation {
         const pos = getRelativeMousePosition(event, gl.canvas);
         this.mouse.x = pos.x;
         this.mouse.y = pos.y;
+        this.splatColor = HSVtoRGB(this.lastTime, 1., 1.);
     }
 
     setMousePressed(event) {

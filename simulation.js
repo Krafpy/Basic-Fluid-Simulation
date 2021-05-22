@@ -32,6 +32,8 @@ class Simulation {
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.radius, inputs.splatRadius);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
+            gl.uniform1f(uniforms.decay, inputs.decay);
+            gl.uniform1f(uniforms.deltaTime, this.deltaTime);
             gl.uniform1i(uniforms.density, this.density.read.attach(0));
 
             this.splatProgram.run(this.density.write);

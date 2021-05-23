@@ -9,7 +9,8 @@ class Simulation {
         this.splatProgram  = new Program(shaders.vertex, shaders.splat,  quadBuffer);
         this.gsstepProgram = new Program(shaders.vertex, shaders.gsstep, quadBuffer);
 
-        this.density = new DoubleFrameBuffer(this.width, this.height);
+        this.density   = new DoubleFrameBuffer(this.width, this.height);
+        this.gscompute = new DoubleFrameBuffer(this.width, this.height);
 
         this.lastTime = 0;
         this.deltaTime = 0;
@@ -43,19 +44,7 @@ class Simulation {
         }
 
         // Diffusion solving using Gauss-Seidel relaxation
-        {
-            const {uniforms} = this.gsstepProgram;
-            this.gsstepProgram.bind();
-
-            gl.uniform2f(uniforms.resolution, this.width, this.height);
-            gl.uniform1f(uniforms.k, this.deltaTime * inputs.diffusionCoeff);
-
-            for(let i = 0; i < 20; ++i){
-                gl.uniform1i(uniforms.field, this.density.read.attach(0));
-                this.gsstepProgram.run(this.density.write);
-                this.density.swap();
-            }
-        }
+        this.gaussSeidelRelaxation(this.density, this.deltaTime * gui.inputs.diffusionCoeff);
     }
 
     draw() {
@@ -71,6 +60,34 @@ class Simulation {
         gl.uniform1i(uniforms.texture, this.density.read.attach(0));
 
         this.copyProgram.run();
+    }
+
+    gaussSeidelRelaxation(sourceDFBO, k) {
+        {
+            const {uniforms} = this.gsstepProgram;
+            this.gsstepProgram.bind();
+
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1f(uniforms.k, k);
+            gl.uniform1i(uniforms.field, sourceDFBO.read.attach(0));
+
+            for(let i = 0; i < 20; ++i){
+                gl.uniform1i(uniforms.compute, this.gscompute.read.attach(1));
+                this.gsstepProgram.run(this.gscompute.write);
+                this.gscompute.swap();
+            }
+        }
+
+        {
+            const {uniforms} = this.copyProgram; 
+            this.copyProgram.bind();
+
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1i(uniforms.texture, this.gscompute.read.attach(0));
+
+            this.copyProgram.run(sourceDFBO.write);
+            sourceDFBO.swap();
+        }
     }
 
     setMousePosition(event) {

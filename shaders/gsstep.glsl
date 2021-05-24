@@ -8,6 +8,7 @@ uniform vec2 resolution;
 uniform float k;
 uniform sampler2D field;
 uniform sampler2D compute;
+uniform bool bndContinuity;
 
 vec2 uv(vec2 o) {
     return (gl_FragCoord.xy + o) / resolution;
@@ -31,7 +32,7 @@ void main() {
 
     if(gl_FragCoord.x <= 1. || gl_FragCoord.x >= resolution.x - 1. ||
        gl_FragCoord.y <= 1. || gl_FragCoord.y >= resolution.y - 1.) {
-        new = texture2D(field, uv(bnd())).xyz;
+        new = bndContinuity ? texture2D(field, uv(bnd())).xyz : vec3(bnd(), 0.);
     } else {
         float h = 1.;
         vec3 top    = texture2D(compute, uv( 0., h)).xyz;

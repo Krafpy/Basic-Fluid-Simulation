@@ -12,10 +12,16 @@ function main() {
   canvas.width = 640;
   canvas.height = 480;
 
-  gl = canvas.getContext("webgl2");
-
+  gl = canvas.getContext("webgl");
   if(!gl){
     alert("Unable to initialize WebGL.");
+    return;
+  }
+
+  const texFloat = gl.getExtension('OES_texture_float');
+  const bufFloat = gl.getExtension('WEBGL_color_buffer_float');
+  if(!texFloat || !bufFloat){
+    alert("Unable to load floats extension.");
     return;
   }
 
@@ -45,6 +51,8 @@ async function loadShaderSources() {
     vertex:   loadShader(vs, await readTextFile("shaders/vertex.glsl")),
     copy:     loadShader(fs, await readTextFile("shaders/copy.glsl")),
     splat:    loadShader(fs, await readTextFile("shaders/splat.glsl")),
+    force:    loadShader(fs, await readTextFile("shaders/force.glsl")),
     gsstep:   loadShader(fs, await readTextFile("shaders/gsstep.glsl")),
+    advect:   loadShader(fs, await readTextFile("shaders/advect.glsl")),
   };
 }

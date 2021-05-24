@@ -7,16 +7,21 @@ class Simulation {
 
         this.copyProgram   = new Program(shaders.vertex, shaders.copy,   quadBuffer);
         this.splatProgram  = new Program(shaders.vertex, shaders.splat,  quadBuffer);
+        this.forceProgram  = new Program(shaders.vertex, shaders.force,  quadBuffer);
         this.gsstepProgram = new Program(shaders.vertex, shaders.gsstep, quadBuffer);
+        this.advectProgram = new Program(shaders.vertex, shaders.advect, quadBuffer);
 
         this.density   = new DoubleFrameBuffer(this.width, this.height);
         this.gscompute = new DoubleFrameBuffer(this.width, this.height);
+        this.velocity  = new DoubleFrameBuffer(this.width, this.height);
 
         this.lastTime = 0;
         this.deltaTime = 0;
 
         this.mouse = {x:0, y:0, pressed:0};
         this.splatColor = HSVtoRGB(0., 1., 1.);
+
+        this.force = {x:0, y:0};
     }
 
     update(timeStamp) {
@@ -26,6 +31,16 @@ class Simulation {
         this.deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
+        this.addSources(inputs);
+
+        this.diffuse(this.velocity, inputs.diffusionCoeff, 0);
+        this.advect(this.velocity, this.velocity, 0);
+
+        this.diffuse(this.density, inputs.diffusionCoeff, 1);
+        this.advect(this.density, this.velocity, 1);
+    }
+
+    addSources(inputs) {
         // Density source
         {
             const {uniforms} = this.splatProgram;
@@ -42,9 +57,41 @@ class Simulation {
             this.splatProgram.run(this.density.write);
             this.density.swap();
         }
+        
+        // Force source
+        {
+            const {uniforms} = this.forceProgram;
+            this.forceProgram.bind();
 
-        // Diffusion solving using Gauss-Seidel relaxation
-        this.gaussSeidelRelaxation(this.density, this.deltaTime * gui.inputs.diffusionCoeff);
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1f(uniforms.radius, 0.02);
+            gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
+            gl.uniform1f(uniforms.decay, 0);
+            gl.uniform1f(uniforms.deltaTime, this.deltaTime);
+            gl.uniform2f(uniforms.force, this.force.x, this.force.y)
+            gl.uniform1i(uniforms.density, this.velocity.read.attach(0));
+
+            this.forceProgram.run(this.velocity.write);
+            this.velocity.swap();
+        }
+    }
+
+    diffuse(field, diffCoef, bndContinuity) {
+        this.gaussSeidelRelaxation(field, this.deltaTime * diffCoef, bndContinuity);
+    }
+
+    advect(field, velocity, bndContinuity) {
+        const {uniforms} = this.advectProgram;
+        this.advectProgram.bind();
+
+        gl.uniform2f(uniforms.resolution, this.width, this.height);
+        gl.uniform1f(uniforms.deltaTime, this.deltaTime);
+        gl.uniform1i(uniforms.bndContinuity, bndContinuity);
+        gl.uniform1i(uniforms.velocity, velocity.read.attach(0));
+        gl.uniform1i(uniforms.field, field.read.attach(1));
+
+        this.advectProgram.run(field.write);
+        field.swap();
     }
 
     draw() {
@@ -62,13 +109,14 @@ class Simulation {
         this.copyProgram.run();
     }
 
-    gaussSeidelRelaxation(sourceDFBO, k) {
+    gaussSeidelRelaxation(sourceDFBO, k, bndContinuity) {
         {
             const {uniforms} = this.gsstepProgram;
             this.gsstepProgram.bind();
 
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.k, k);
+            gl.uniform1i(uniforms.bndContinuity, bndContinuity);
             gl.uniform1i(uniforms.field, sourceDFBO.read.attach(0));
 
             for(let i = 0; i < 20; ++i){
@@ -95,6 +143,11 @@ class Simulation {
             pauseEvent(event);
         }
         const pos = getRelativeMousePosition(event, gl.canvas);
+
+        const f = 1.;
+        this.force.x = (pos.x - this.mouse.x) * f;
+        this.force.y = (pos.y - this.mouse.y) * f;
+
         this.mouse.x = pos.x;
         this.mouse.y = pos.y;
         this.splatColor = HSVtoRGB(this.lastTime, 1., 1.);

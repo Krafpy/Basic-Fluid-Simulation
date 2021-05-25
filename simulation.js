@@ -5,12 +5,15 @@ class Simulation {
 
         const quadBuffer = createQuadBuffer();
 
-        this.copyProgram    = new Program(shaders.vertex, shaders.copy,    quadBuffer);
-        this.splatProgram   = new Program(shaders.vertex, shaders.splat,   quadBuffer);
-        this.forceProgram   = new Program(shaders.vertex, shaders.force,   quadBuffer);
-        this.diffuseProgram = new Program(shaders.vertex, shaders.diffuse, quadBuffer);
-        this.advectProgram  = new Program(shaders.vertex, shaders.advect,  quadBuffer);
-        this.bndProgram     = new Program(shaders.vertex, shaders.bnd,     quadBuffer);
+        this.copyProgram     = new Program(shaders.vertex, shaders.copy,     quadBuffer);
+        this.splatProgram    = new Program(shaders.vertex, shaders.splat,    quadBuffer);
+        this.forceProgram    = new Program(shaders.vertex, shaders.force,    quadBuffer);
+        this.diffuseProgram  = new Program(shaders.vertex, shaders.diffuse,  quadBuffer);
+        this.advectProgram   = new Program(shaders.vertex, shaders.advect,   quadBuffer);
+        this.bndProgram      = new Program(shaders.vertex, shaders.bnd,      quadBuffer);
+        this.pressureProgram = new Program(shaders.vertex, shaders.pressure, quadBuffer);
+        this.projectProgram  = new Program(shaders.vertex, shaders.project,  quadBuffer);
+        this.clearProgram    = new Program(shaders.vertex, shaders.clear,    quadBuffer);
 
         this.density   = new DoubleFrameBuffer(this.width, this.height);
         this.gscompute = new DoubleFrameBuffer(this.width, this.height);
@@ -37,6 +40,9 @@ class Simulation {
         this.diffuse(this.velocity, inputs.velDiffCoeff);
         this.setBoundaries(this.velocity, -1.);
         this.advect(this.density, this.velocity);
+        this.setBoundaries(this.velocity, -1.);
+
+        this.clearVelocityDivergence();
         this.setBoundaries(this.velocity, -1.);
 
         this.diffuse(this.density, inputs.densDiffCoeff);
@@ -82,11 +88,33 @@ class Simulation {
     }
 
     diffuse(field, diffCoef) {
-        this.gaussSeidelRelaxation(
-            field,
-            this.diffuseProgram,
-            this.deltaTime * diffCoef
-        );
+        this.clearTexture(this.gscompute);
+
+        {
+            const {uniforms} = this.diffuseProgram;
+            this.diffuseProgram.bind();
+
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1f(uniforms.k, this.deltaTime * diffCoef);
+            gl.uniform1i(uniforms.field, field.read.attach(0));
+
+            for(let i = 0; i < 20; ++i){
+                gl.uniform1i(uniforms.compute, this.gscompute.read.attach(1));
+                this.diffuseProgram.run(this.gscompute.write);
+                this.gscompute.swap();
+            }
+        }
+
+        {
+            const {uniforms} = this.copyProgram; 
+            this.copyProgram.bind();
+
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1i(uniforms.texture, this.gscompute.read.attach(0));
+
+            this.copyProgram.run(field.write);
+            field.swap();
+        }
     }
 
     advect(field, velocity) {
@@ -117,36 +145,6 @@ class Simulation {
         this.copyProgram.run();
     }
 
-    gaussSeidelRelaxation(field, gsProgram, k) {
-        {
-            const {uniforms} = gsProgram;
-            gsProgram.bind();
-
-            gl.uniform2f(uniforms.resolution, this.width, this.height);
-            gl.uniform1f(uniforms.k, k);
-            gl.uniform1i(uniforms.field, field.read.attach(0));
-
-            for(let i = 0; i < 20; ++i){
-                //gsProgram.bind();
-                gl.uniform1i(uniforms.compute, this.gscompute.read.attach(1));
-                gsProgram.run(this.gscompute.write);
-                this.gscompute.swap();
-                //this.setBoundaries(this.gscompute, bndFactor);
-            }
-        }
-
-        {
-            const {uniforms} = this.copyProgram; 
-            this.copyProgram.bind();
-
-            gl.uniform2f(uniforms.resolution, this.width, this.height);
-            gl.uniform1i(uniforms.texture, this.gscompute.read.attach(0));
-
-            this.copyProgram.run(field.write);
-            field.swap();
-        }
-    }
-
     setBoundaries(field, factor) {
         const {uniforms} = this.bndProgram;
         this.bndProgram.bind();
@@ -157,6 +155,44 @@ class Simulation {
 
         this.bndProgram.run(field.write);
         field.swap();
+    }
+
+    clearTexture(doubleFBO) {
+        this.clearProgram.bind();
+        this.clearProgram.run(doubleFBO.write);
+        doubleFBO.swap();
+    }
+
+    clearVelocityDivergence() {
+        this.clearTexture(this.gscompute);
+
+        {
+            const {uniforms} = this.pressureProgram;
+            this.pressureProgram.bind();
+
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1i(uniforms.velocity, this.velocity.read.attach(0));
+
+            for(let i = 0; i < 20; ++i){
+                gl.uniform1i(uniforms.compute, this.gscompute.read.attach(1));
+                this.pressureProgram.run(this.gscompute.write);
+                this.gscompute.swap();
+            }
+        }
+
+        this.setBoundaries(this.gscompute, 1.);
+
+        {
+            const {uniforms} = this.projectProgram;
+            this.projectProgram.bind();
+
+            gl.uniform2f(uniforms.resolution, this.width, this.height);
+            gl.uniform1i(uniforms.velocity, this.velocity.read.attach(0));
+            gl.uniform1i(uniforms.divergent, this.gscompute.read.attach(1));
+
+            this.projectProgram.run(this.velocity.write);
+            this.velocity.swap();
+        }
     }
 
     setMousePosition(event) {

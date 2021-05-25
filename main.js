@@ -55,5 +55,8 @@ async function loadShaderSources() {
     diffuse:  loadShader(fs, await readTextFile("shaders/diffuse.glsl")),
     advect:   loadShader(fs, await readTextFile("shaders/advect.glsl")),
     bnd:      loadShader(fs, await readTextFile("shaders/bnd.glsl")),
+    pressure: loadShader(fs, await readTextFile("shaders/pressure.glsl")),
+    project:  loadShader(fs, await readTextFile("shaders/project.glsl")),
+    clear:    loadShader(fs, await readTextFile("shaders/clear.glsl")),
   };
 }

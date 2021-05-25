@@ -25,7 +25,7 @@ class FrameBuffer {
         if(bg) {
             gl.clearColor(bg.r, bg.g, bg.b, 1.);
         } else {
-            gl.clearColor(0.0,   0.0,  0.0, 1.);
+            gl.clearColor( 0.0,  0.0,  0.0, 1.);
         }
 
         // Create the texture

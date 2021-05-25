@@ -10,6 +10,7 @@ class Simulation {
         this.forceProgram  = new Program(shaders.vertex, shaders.force,  quadBuffer);
         this.gsstepProgram = new Program(shaders.vertex, shaders.gsstep, quadBuffer);
         this.advectProgram = new Program(shaders.vertex, shaders.advect, quadBuffer);
+        this.bndProgram    = new Program(shaders.vertex, shaders.bnd,    quadBuffer);
 
         this.density   = new DoubleFrameBuffer(this.width, this.height);
         this.gscompute = new DoubleFrameBuffer(this.width, this.height);
@@ -33,11 +34,15 @@ class Simulation {
 
         this.addSources(inputs);
 
-        this.diffuse(this.velocity, inputs.diffusionCoeff, 0);
-        this.advect(this.velocity, this.velocity, 0);
+        this.diffuse(this.velocity, inputs.velDiffCoeff);
+        this.setBoundaries(this.velocity, -1.);
+        this.advect(this.density, this.velocity);
+        this.setBoundaries(this.velocity, -1.);
 
-        this.diffuse(this.density, inputs.diffusionCoeff, 1);
-        this.advect(this.density, this.velocity, 1);
+        this.diffuse(this.density, inputs.densDiffCoeff);
+        this.setBoundaries(this.density, 1.);
+        this.advect(this.density, this.velocity);
+        this.setBoundaries(this.density, 1.);
     }
 
     addSources(inputs) {
@@ -76,17 +81,16 @@ class Simulation {
         }
     }
 
-    diffuse(field, diffCoef, bndContinuity) {
-        this.gaussSeidelRelaxation(field, this.deltaTime * diffCoef, bndContinuity);
+    diffuse(field, diffCoef) {
+        this.gaussSeidelRelaxation(field, this.deltaTime * diffCoef);
     }
 
-    advect(field, velocity, bndContinuity) {
+    advect(field, velocity) {
         const {uniforms} = this.advectProgram;
         this.advectProgram.bind();
 
         gl.uniform2f(uniforms.resolution, this.width, this.height);
         gl.uniform1f(uniforms.deltaTime, this.deltaTime);
-        gl.uniform1i(uniforms.bndContinuity, bndContinuity);
         gl.uniform1i(uniforms.velocity, velocity.read.attach(0));
         gl.uniform1i(uniforms.field, field.read.attach(1));
 
@@ -109,20 +113,21 @@ class Simulation {
         this.copyProgram.run();
     }
 
-    gaussSeidelRelaxation(sourceDFBO, k, bndContinuity) {
+    gaussSeidelRelaxation(sourceDFBO, k) {
         {
             const {uniforms} = this.gsstepProgram;
             this.gsstepProgram.bind();
 
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.k, k);
-            gl.uniform1i(uniforms.bndContinuity, bndContinuity);
             gl.uniform1i(uniforms.field, sourceDFBO.read.attach(0));
 
             for(let i = 0; i < 20; ++i){
+                //this.gsstepProgram.bind();
                 gl.uniform1i(uniforms.compute, this.gscompute.read.attach(1));
                 this.gsstepProgram.run(this.gscompute.write);
                 this.gscompute.swap();
+                //this.setBoundaries(this.gscompute, bndFactor);
             }
         }
 
@@ -136,6 +141,18 @@ class Simulation {
             this.copyProgram.run(sourceDFBO.write);
             sourceDFBO.swap();
         }
+    }
+
+    setBoundaries(field, factor) {
+        const {uniforms} = this.bndProgram;
+        this.bndProgram.bind();
+
+        gl.uniform2f(uniforms.resolution, this.width, this.height);
+        gl.uniform1i(uniforms.field, field.read.attach(0));
+        gl.uniform1f(uniforms.factor, factor);
+
+        this.bndProgram.run(field.write);
+        field.swap();
     }
 
     setMousePosition(event) {

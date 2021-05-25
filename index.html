@@ -49,17 +49,37 @@
             <span class="propertyName">Splat radius</span>
           </div>
           <div class="inputsHolder">
-            <input type="range" name="splatRadius" value="0.05" min="0" max="0.1" step="0.005" />
+            <input type="range" name="splatRadius" value="0.05" min="0.005" max="0.1" step="0.005" />
             <input type="text" />
           </div>
         </li>
 
         <li class="sliderContainer">
           <div class="propertyNameHolder">
-            <span class="propertyName">Decay speed</span>
+            <span class="propertyName">Diffusion decay speed</span>
           </div>
           <div class="inputsHolder">
-            <input type="range" name="decay" value="0" min="0" max="1" step="0.005" />
+            <input type="range" name="diffDecay" value="0.1" min="0" max="1" step="0.005" />
+            <input type="text" />
+          </div>
+        </li>
+
+        <li class="sliderContainer">
+          <div class="propertyNameHolder">
+            <span class="propertyName">Velocity decay speed</span>
+          </div>
+          <div class="inputsHolder">
+            <input type="range" name="velDecay" value="0.1" min="0" max="1" step="0.005" />
+            <input type="text" />
+          </div>
+        </li>
+
+        <li class="sliderContainer">
+          <div class="propertyNameHolder">
+            <span class="propertyName">Force strength</span>
+          </div>
+          <div class="inputsHolder">
+            <input type="range" name="forceStrength" value="25" min="1" max="100" step="0.005" />
             <input type="text" />
           </div>
         </li>

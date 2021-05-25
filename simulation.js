@@ -60,7 +60,7 @@ class Simulation {
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.radius, inputs.splatRadius);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
-            gl.uniform1f(uniforms.decay, inputs.decay);
+            gl.uniform1f(uniforms.decay, inputs.diffDecay);
             gl.uniform1f(uniforms.deltaTime, this.deltaTime);
             gl.uniform3f(uniforms.color, this.splatColor.r, this.splatColor.g, this.splatColor.b)
             gl.uniform1i(uniforms.density, this.density.read.attach(0));
@@ -77,7 +77,7 @@ class Simulation {
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.radius, 0.02);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
-            gl.uniform1f(uniforms.decay, 0);
+            gl.uniform1f(uniforms.decay, inputs.velDecay);
             gl.uniform1f(uniforms.deltaTime, this.deltaTime);
             gl.uniform2f(uniforms.force, this.force.x, this.force.y)
             gl.uniform1i(uniforms.density, this.velocity.read.attach(0));
@@ -201,9 +201,8 @@ class Simulation {
         }
         const pos = getRelativeMousePosition(event, gl.canvas);
 
-        const f = 1.;
-        this.force.x = (pos.x - this.mouse.x) * f;
-        this.force.y = (pos.y - this.mouse.y) * f;
+        this.force.x = (pos.x - this.mouse.x) * gui.inputs.forceStrength;
+        this.force.y = (pos.y - this.mouse.y) * gui.inputs.forceStrength;
 
         this.mouse.x = pos.x;
         this.mouse.y = pos.y;

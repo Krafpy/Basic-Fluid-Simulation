@@ -17,7 +17,7 @@ void main() {
     vec2 p = uv; p.x *= r;
     vec2 m = mouse.xy / resolution; m.x *= r;
 
-    vec2 vel = texture2D(velocity, uv).xy;
+    vec2 vel = texture2D(velocity, uv).xy * (1. - decay * deltaTime);
     vel += force * smoothstep(1., 0., length(p - m) / radius) * mouse.z;
 
     //vec2 vel = normalize(gl_FragCoord.xy - resolution / 2.) * 100.;

@@ -5,12 +5,12 @@ class Simulation {
 
         const quadBuffer = createQuadBuffer();
 
-        this.copyProgram   = new Program(shaders.vertex, shaders.copy,   quadBuffer);
-        this.splatProgram  = new Program(shaders.vertex, shaders.splat,  quadBuffer);
-        this.forceProgram  = new Program(shaders.vertex, shaders.force,  quadBuffer);
-        this.gsstepProgram = new Program(shaders.vertex, shaders.gsstep, quadBuffer);
-        this.advectProgram = new Program(shaders.vertex, shaders.advect, quadBuffer);
-        this.bndProgram    = new Program(shaders.vertex, shaders.bnd,    quadBuffer);
+        this.copyProgram    = new Program(shaders.vertex, shaders.copy,    quadBuffer);
+        this.splatProgram   = new Program(shaders.vertex, shaders.splat,   quadBuffer);
+        this.forceProgram   = new Program(shaders.vertex, shaders.force,   quadBuffer);
+        this.diffuseProgram = new Program(shaders.vertex, shaders.diffuse, quadBuffer);
+        this.advectProgram  = new Program(shaders.vertex, shaders.advect,  quadBuffer);
+        this.bndProgram     = new Program(shaders.vertex, shaders.bnd,     quadBuffer);
 
         this.density   = new DoubleFrameBuffer(this.width, this.height);
         this.gscompute = new DoubleFrameBuffer(this.width, this.height);
@@ -82,7 +82,11 @@ class Simulation {
     }
 
     diffuse(field, diffCoef) {
-        this.gaussSeidelRelaxation(field, this.deltaTime * diffCoef);
+        this.gaussSeidelRelaxation(
+            field,
+            this.diffuseProgram,
+            this.deltaTime * diffCoef
+        );
     }
 
     advect(field, velocity) {
@@ -113,19 +117,19 @@ class Simulation {
         this.copyProgram.run();
     }
 
-    gaussSeidelRelaxation(sourceDFBO, k) {
+    gaussSeidelRelaxation(field, gsProgram, k) {
         {
-            const {uniforms} = this.gsstepProgram;
-            this.gsstepProgram.bind();
+            const {uniforms} = gsProgram;
+            gsProgram.bind();
 
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.k, k);
-            gl.uniform1i(uniforms.field, sourceDFBO.read.attach(0));
+            gl.uniform1i(uniforms.field, field.read.attach(0));
 
             for(let i = 0; i < 20; ++i){
-                //this.gsstepProgram.bind();
+                //gsProgram.bind();
                 gl.uniform1i(uniforms.compute, this.gscompute.read.attach(1));
-                this.gsstepProgram.run(this.gscompute.write);
+                gsProgram.run(this.gscompute.write);
                 this.gscompute.swap();
                 //this.setBoundaries(this.gscompute, bndFactor);
             }
@@ -138,8 +142,8 @@ class Simulation {
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1i(uniforms.texture, this.gscompute.read.attach(0));
 
-            this.copyProgram.run(sourceDFBO.write);
-            sourceDFBO.swap();
+            this.copyProgram.run(field.write);
+            field.swap();
         }
     }
 

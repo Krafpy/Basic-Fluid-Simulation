@@ -52,7 +52,7 @@ async function loadShaderSources() {
     copy:     loadShader(fs, await readTextFile("shaders/copy.glsl")),
     splat:    loadShader(fs, await readTextFile("shaders/splat.glsl")),
     force:    loadShader(fs, await readTextFile("shaders/force.glsl")),
-    gsstep:   loadShader(fs, await readTextFile("shaders/gsstep.glsl")),
+    diffuse:  loadShader(fs, await readTextFile("shaders/diffuse.glsl")),
     advect:   loadShader(fs, await readTextFile("shaders/advect.glsl")),
     bnd:      loadShader(fs, await readTextFile("shaders/bnd.glsl")),
   };

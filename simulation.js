@@ -35,9 +35,9 @@ class Simulation {
         this.deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
-        this.addSources(inputs);
+        this.addSources();
 
-        this.diffuse(this.velocity, inputs.velDiffCoeff);
+        this.diffuse(this.velocity, inputs.velDiffCoeff, inputs.velDecay);
         this.setBoundaries(this.velocity, -1.);
         this.advect(this.density, this.velocity);
         this.setBoundaries(this.velocity, -1.);
@@ -45,13 +45,15 @@ class Simulation {
         this.clearVelocityDivergence();
         this.setBoundaries(this.velocity, -1.);
 
-        this.diffuse(this.density, inputs.densDiffCoeff);
+        this.diffuse(this.density, inputs.densDiffCoeff, inputs.diffDecay);
         this.setBoundaries(this.density, 1.);
         this.advect(this.density, this.velocity);
         this.setBoundaries(this.density, 1.);
     }
 
-    addSources(inputs) {
+    addSources() {
+        const inputs = gui.inputs;
+
         // Density source
         {
             const {uniforms} = this.splatProgram;
@@ -60,7 +62,6 @@ class Simulation {
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.radius, inputs.splatRadius);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
-            gl.uniform1f(uniforms.decay, inputs.diffDecay);
             gl.uniform1f(uniforms.deltaTime, this.deltaTime);
             gl.uniform3f(uniforms.color, this.splatColor.r, this.splatColor.g, this.splatColor.b)
             gl.uniform1i(uniforms.density, this.density.read.attach(0));
@@ -75,9 +76,8 @@ class Simulation {
             this.forceProgram.bind();
 
             gl.uniform2f(uniforms.resolution, this.width, this.height);
-            gl.uniform1f(uniforms.radius, 0.02);
+            gl.uniform1f(uniforms.radius, inputs.splatRadius);
             gl.uniform3f(uniforms.mouse, this.mouse.x, this.mouse.y, this.mouse.pressed);
-            gl.uniform1f(uniforms.decay, inputs.velDecay);
             gl.uniform1f(uniforms.deltaTime, this.deltaTime);
             gl.uniform2f(uniforms.force, this.force.x, this.force.y)
             gl.uniform1i(uniforms.density, this.velocity.read.attach(0));
@@ -87,7 +87,7 @@ class Simulation {
         }
     }
 
-    diffuse(field, diffCoef) {
+    diffuse(field, diffCoef, decay) {
         this.clearTexture(this.gscompute);
 
         {
@@ -96,6 +96,7 @@ class Simulation {
 
             gl.uniform2f(uniforms.resolution, this.width, this.height);
             gl.uniform1f(uniforms.k, this.deltaTime * diffCoef);
+            gl.uniform1f(uniforms.decay, decay * this.deltaTime);
             gl.uniform1i(uniforms.field, field.read.attach(0));
 
             for(let i = 0; i < 20; ++i){
@@ -206,13 +207,15 @@ class Simulation {
 
         this.mouse.x = pos.x;
         this.mouse.y = pos.y;
-        this.splatColor = HSVtoRGB(this.lastTime, 1., 1.);
+        this.splatColor = HSVtoRGB(this.lastTime * 0.5, 1., 1.);
+        //this.addSources();
     }
 
     setMousePressed(event) {
         if(event.target.tagName == "BODY" && event.buttons == 1) {
             pauseEvent(event);
             this.mouse.pressed = 1;
+            //this.addSources();
         } else {
             this.mouse.pressed = 0;
         }

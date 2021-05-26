@@ -7,7 +7,6 @@ uniform vec2 resolution;
 uniform vec3 mouse; // (x, y, isPressed)
 uniform float radius;
 uniform sampler2D density;
-uniform float decay;
 uniform float deltaTime;
 uniform vec3 color;
 
@@ -21,9 +20,9 @@ void main() {
     vec2 p = uv; p.x *= r;
     vec2 m = mouse.xy / resolution; m.x *= r;
 
-    vec3 oldDensity = texture2D(density, uv).rgb - decay * deltaTime;
+    vec3 oldDensity = texture2D(density, uv).rgb;
     oldDensity = clamp01(oldDensity);
-    float splat = smoothstep(1., 0., length(p - m) / radius) * mouse.z;
+    float splat = smoothstep(1., 0., length(p - m) / radius) * mouse.z * 0.5;
     vec3 newDensity = clamp01(oldDensity + splat * color);
 
     gl_FragColor = vec4(newDensity, 1.);

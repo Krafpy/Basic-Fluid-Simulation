@@ -5,6 +5,7 @@ uniform vec2 resolution;
 uniform float k;
 uniform sampler2D field;
 uniform sampler2D compute;
+uniform float decay;
 
 void main() {
     vec3 new = vec3(0.);
@@ -18,6 +19,7 @@ void main() {
     sum += texture2D(compute, (coord + h.zy) / resolution).xyz;
 
     vec3 current = texture2D(field, coord / resolution).xyz;
+    current *= (1. - decay);
 
     new = (current + k*sum) / (1. + 4.*k);
 

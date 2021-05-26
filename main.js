@@ -7,10 +7,10 @@ function main() {
 
   const canvas = document.getElementById("glCanvas");
   // fullScreen
-  /*canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;*/
-  canvas.width = 640;
-  canvas.height = 480;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  /*canvas.width = 640;
+  canvas.height = 480;*/
 
   gl = canvas.getContext("webgl");
   if(!gl){

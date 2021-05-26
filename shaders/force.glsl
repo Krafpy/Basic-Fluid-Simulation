@@ -8,8 +8,27 @@ uniform vec3 mouse; // (x, y, isPressed)
 uniform vec2 force;
 uniform float radius;
 uniform sampler2D velocity;
-uniform float decay;
 uniform float deltaTime;
+
+vec2 random2(vec2 st){
+    st = vec2( dot(st,vec2(127.1,311.7)),
+              dot(st,vec2(269.5,183.3)) );
+    return -1.0 + 2.0*fract(sin(st)*43758.5453123);
+}
+
+// Gradient Noise by Inigo Quilez
+// https://www.shadertoy.com/view/XdXGW8
+float noise(vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+
+    vec2 u = f*f*(3.0-2.0*f);
+
+    return mix( mix( dot( random2(i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ),
+                     dot( random2(i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+                mix( dot( random2(i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ),
+                     dot( random2(i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+}
 
 void main() {
     float r = resolution.x / resolution.y;
@@ -17,10 +36,12 @@ void main() {
     vec2 p = uv; p.x *= r;
     vec2 m = mouse.xy / resolution; m.x *= r;
 
-    vec2 vel = texture2D(velocity, uv).xy * (1. - decay * deltaTime);
-    vel += force * smoothstep(1., 0., length(p - m) / radius) * mouse.z;
-
-    //vec2 vel = normalize(gl_FragCoord.xy - resolution / 2.) * 100.;
+    vec2 vel = texture2D(velocity, uv).xy;
+    float s = 15.;
+    vec2 rand = vec2(noise(uv * s), noise(uv * s + 1.)) * length(force);
+    float d = length(p - (m + 0.1 * force / resolution));
+    float mag = smoothstep(1., 0., d / radius);
+    vel += (force + rand) * mag * mouse.z;
 
     gl_FragColor = vec4(vel, 0., 1.);
 }

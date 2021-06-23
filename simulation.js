@@ -39,7 +39,7 @@ class Simulation {
 
         this.diffuse(this.velocity, inputs.velDiffCoeff, inputs.velDecay);
         this.setBoundaries(this.velocity, -1.);
-        this.advect(this.density, this.velocity);
+        this.advect(this.velocity, this.velocity);
         this.setBoundaries(this.velocity, -1.);
 
         this.clearVelocityDivergence();

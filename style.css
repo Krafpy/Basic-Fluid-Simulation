@@ -147,3 +147,10 @@ input[type="range"] {
 ::-ms-tooltip { 
   display: none;
 }
+
+#gitIcon
+{
+  filter: invert(1);
+  margin-left: 5px;
+  margin-top: 5px;
+}
